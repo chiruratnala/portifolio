@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --lavender-bg: #E1E1ED;
+            --white-bg: #FFFFFF;
+            --dark-text: #33334F;
+            --light-text: #7A7A91;
+            --accent-color: #A9A9D5;
+            --main-font: 'Plus Jakarta Sans', sans-serif;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body, html { margin: 0; padding: 0; width: 100%; font-family: var(--main-font); background-color: var(--white-bg); }
+        .portfolio-container { display: flex; height: 100vh; position: relative; }
+        .panel { padding: 40px 50px; }
+        .left-panel { flex: 1; background-color: var(--lavender-bg); }
+        .right-panel { flex: 1; background-color: var(--white-bg); }
+        h1 { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: clamp(2rem, 6vw, 6rem); color: var(--dark-text); font-weight: 800; letter-spacing: 0.08em; margin: 0; text-transform: uppercase; white-space: nowrap; text-shadow: 1px 1px 2px rgba(0,0,0,0.05); z-index: 10; }
+        .main-nav { display: flex; justify-content: flex-end; }
+        .main-nav ul { list-style: none; margin: 0; padding: 0; display: flex; }
+        .main-nav li { margin-left: 35px; }
+        .nav-link { text-decoration: none; color: var(--light-text); font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 15px; border-radius: 2px; transition: all 0.3s ease; }
+        .nav-link.active { background-color: var(--lavender-bg); color: var(--dark-text); }
+        .nav-link:not(.active):hover { color: var(--dark-text); }
+        .content-section { padding: 80px 50px; }
+        .section-title { text-align: center; font-size: 32px; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 0.1em; }
+        .project-showcase { display: flex; align-items: center; gap: 40px; margin-bottom: 60px; opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+        .project-showcase.is-visible { opacity: 1; transform: translateY(0); }
+        .project-showcase:nth-child(even) { flex-direction: row-reverse; }
+        .project-image { flex: 1; max-width: 50%; }
+        .project-image img { width: 100%; height: auto; display: block; border-radius: 4px; }
+        .project-details { flex: 1; max-width: 50%; padding: 0 30px; }
+        .project-category { font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--light-text); letter-spacing: 1.5px; margin-bottom: 15px; }
+        .project-title { font-size: 40px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; margin: 0; }
+        .project-description { font-family: sans-serif; font-size: 15px; line-height: 1.6; color: #616161; margin: 25px 0 35px 0; font-weight: normal;  overflow-wrap: break-word; }
+        .read-more-btn { position: relative; display: inline-block; text-decoration: none; color: var(--dark-text); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; padding: 5px; }
+        .read-more-btn::after { content: ''; position: absolute; width: 100%; height: 8px; background-color: var(--accent-color); bottom: 0px; left: 0; z-index: -1; transition: height 0.3s ease; }
+        .read-more-btn:hover::after { height: 100%; }
+       .footer {
+            background-color: var(--lavender-bg);
+            padding: 100px 80px 30px 80px;
+            text-align: left;
+        }
+        .footer-heading { font-size: 12px; font-weight: 800; text-transform: uppercase; color: var(--light-text); letter-spacing: 0.22em; margin-bottom: 50px; }
+        .footer-links a { display: block; color: var(--dark-text); font-size: clamp(1rem, 3vw, 2rem); font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; line-height: 1.6; margin: 0; margin-bottom: 15px; transition: letter-spacing 0.3s ease; }
+        .footer-links a:hover { letter-spacing: 0.18em; }
+        .footer-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 120px; font-size: 14px; color: var(--light-text); font-weight: normal; }
+        .footer-bottom .back-to-top { color: var(--dark-text); text-decoration: none; font-size: 28px; font-weight: 800; }
+
+        @media (max-width: 800px) {
+            .portfolio-container { flex-direction: column; }
+            .left-panel, .right-panel { flex: 1; width: 100%; }
+            .right-panel { padding: 30px 20px; display: flex; justify-content: flex-start; }
+            .main-nav { justify-content: center; }
+            .content-section { padding: 60px 20px; }
+            .project-showcase, .project-showcase:nth-child(even) { flex-direction: column; text-align: center; }
+            .project-image, .project-details { max-width: 100%; padding: 0; }
+            .project-image { margin-bottom: 30px; }
+            .footer { padding: 60px 30px 30px 30px; }
+            .footer-links a, .footer-heading { letter-spacing: 0.1em; }
+        }
+    </style>
+</head>
+<body>
+
+    <main class="portfolio-container" id="home">
+        <h1>CHIRU RATNALA</h1>
+        <section class="panel left-panel"></section>
+        <section class="panel right-panel">
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#projects" class="nav-link">PROJECTS</a></li>
+                    <li><a href="about.html" class="nav-link">ABOUT</a></li>
+                    <li><a href="#contact" class="nav-link">CONTACT</a></li>
+                </ul>
+            </nav>
+        </section>
+    </main>
+
+    <section id="projects" class="content-section">
+        <h2 class="section-title">My Work</h2>
+        <div id="projects-list"></div>
+    </section>
+
+    <footer id="contact" class="footer">
+        <p class="footer-heading">Let's Connect</p>
+        <div class="footer-links">
+            <a href="mailto:chiruratnalaa@example.com">CHIRURATNALAA@GMAIL.COM</a>
+            <a href="https://www.linkedin.com/in/chiru-ratnala" target="_blank">LinkedIn</a>
+            <a href="https://www.instagram.com/chiru_ratnala" target="_blank">INSTAGRAM</a>
+        </div>
+        <div class="footer-bottom">
+            <p class="copyright">&copy; Chiru Ratnala 2025</p>
+            <a href="#home" class="back-to-top">&uarr;</a>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+        import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAw6QrKO6fVhZURIg25Q4sNJGeszahPeBM",
+            authDomain: "portfolio-fedd0.firebaseapp.com",
+            projectId: "portfolio-fedd0",
+            storageBucket: "portfolio-fedd0.appspot.com",
+            messagingSenderId: "820328967165",
+            appId: "1:820328967165:web:3c6e4e61ad4459af018794",
+            measurementId: "G-XKKLRD3B91"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function loadProjects() {
+            const projectsQuery = query(collection(db, "projects"), orderBy("order", "asc"));
+            const querySnapshot = await getDocs(projectsQuery);
+            
+            let html = "";
+            querySnapshot.forEach(doc => {
+                const p = doc.data();
+                html += `
+                  <div class="project-showcase">
+                    <div class="project-image">
+                      <img src="${p.imageUrl || 'https://via.placeholder.com/600x400'}" alt="${p.title} screenshot">
+                    </div>
+                    <div class="project-details">
+                      <p class="project-category">${p.category || "General"}</p>
+                      <h3 class="project-title">${p.title}</h3>
+                      <p class="project-description">${p.description}</p>
+                      <a href="${p.link}" target="_blank" class="read-more-btn">View Project</a>
+                    </div>
+                  </div>`;
+            });
+            document.getElementById("projects-list").innerHTML = html;
+
+            const animatedElements = document.querySelectorAll('.project-showcase');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            animatedElements.forEach(el => observer.observe(el));
+        }
+
+        loadProjects();
+    </script>
+    
+    <script>
+        const navSections = document.querySelectorAll('main, section, footer');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        window.addEventListener('scroll', () => {
+            let current = 'home';
+            navSections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= (sectionTop - (window.innerHeight / 3))) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const linkHref = link.getAttribute('href');
+                if (linkHref && linkHref.includes('#')) {
+                    const linkAnchor = linkHref.substring(linkHref.indexOf('#') + 1);
+                     if (linkAnchor === current) {
+                        link.classList.add('active');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio Admin</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 20px; background: #f4f4f9; max-width: 600px; margin: 40px auto; }
+    h1, h2, h3 { color: #333; }
+    form, .manage-section { margin-bottom: 20px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    hr { border: 0; border-top: 1px solid #eee; margin: 30px 0; }
+    input, textarea, label { display: block; width: calc(100% - 22px); padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; }
+    label { padding: 0; border: none; font-weight: bold; font-size: 0.9em; color: #555; }
+    textarea { min-height: 80px; font-family: inherit; }
+    button { padding: 10px 15px; border: none; background: #333; color: white; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #555; }
+    button:disabled { background: #999; cursor: not-allowed; }
+    .delete-btn { background: crimson !important; }
+    #logoutBtn { background: #888; margin-top: 10px; width: 100%; }
+    
+    /* Sortable Styles */
+    .sortable-item { display: flex; align-items: center; background: #f9f9f9; padding: 10px; border: 1px solid #ddd; margin-bottom: 8px; border-radius: 6px; }
+    .sortable-item:hover { background: #f1f1f1; }
+    .drag-handle { cursor: grab; margin-right: 15px; color: #aaa; font-size: 1.2rem; font-weight: bold; }
+    .drag-handle:active { cursor: grabbing; }
+    .item-title { flex-grow: 1; }
+    .sortable-ghost { opacity: 0.4; background: #c8ebfb; }
+  </style>
+</head>
+<body>
+
+  <h1>Portfolio Admin Panel</h1>
+  <form id="loginForm">
+    <h3>Login</h3>
+    <input type="email" id="loginEmail" placeholder="Email" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+
+  <div id="adminContent" style="display:none;">
+    
+    <form id="aboutForm">
+      <h3>Edit "About Me" Section</h3>
+      <label for="aboutTitle">Headline</label>
+      <input type="text" id="aboutTitle" placeholder="e.g., Developer & Creator" required>
+      
+      <label for="aboutDescription">Description</label>
+      <textarea id="aboutDescription" placeholder="Your bio or description..." required></textarea>
+      
+      <button type="submit">Save About Me</button>
+    </form>
+    
+    <hr>
+    
+    <form id="projectForm">
+      <h3>Add New Project</h3>
+      <label for="projectTitle">Project Title</label>
+      <input type="text" id="projectTitle" placeholder="Project Title" required>
+      
+      <label for="projectCategory">Category</label>
+      <input type="text" id="projectCategory" placeholder="e.g., Web Development" required>
+
+      <label for="projectDescription">Project Description</label>
+      <textarea id="projectDescription" placeholder="Project Description" required></textarea>
+      
+      <label for="projectImageUrl">Project Image URL</label>
+      <input type="text" id="projectImageUrl" placeholder="https://example.com/path/to/image.jpg" required>
+      
+      <label for="projectLink">Project Link</label>
+      <input type="text" id="projectLink" placeholder="Project Link">
+      
+      <button type="submit">Add Project</button>
+    </form>
+    <div id="project-list-admin" class="manage-section"></div>
+    
+    <hr>
+
+    <form id="certificateForm">
+      <h3>Add New Certificate</h3>
+      <label for="certTitle">Certificate Title</label>
+      <input type="text" id="certTitle" placeholder="Certificate Title" required>
+      
+      <label for="certCategory">Issuing Organization</label>
+      <input type="text" id="certCategory" placeholder="e.g., AWS" required>
+
+      <label for="certDescription">Certificate Description</label>
+      <textarea id="certDescription" placeholder="Certificate Description" required></textarea>
+      
+      <label for="certImageUrl">Certificate Image URL</label>
+      <input type="text" id="certImageUrl" placeholder="https://example.com/path/to/image.jpg" required>
+      
+      <label for="certLink">Credential URL</label>
+      <input type="text" id="certLink" placeholder="Credential URL">
+      
+      <button type="submit">Add Certificate</button>
+    </form>
+    <div id="certificate-list-admin" class="manage-section"></div>
+    
+    <button id="logoutBtn" type="button">Logout</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyAw6QrKO6fVhZURIg25Q4sNJGeszahPeBM",
+        authDomain: "portfolio-fedd0.firebaseapp.com",
+        projectId: "portfolio-fedd0",
+        storageBucket: "portfolio-fedd0.appspot.com",
+        messagingSenderId: "820328967165",
+        appId: "1:820328967165:web:3c6e4e61ad4459af018794",
+        measurementId: "G-XKKLRD3B91"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // UI Elements
+    const loginForm = document.getElementById("loginForm");
+    const adminContent = document.getElementById("adminContent");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const projectForm = document.getElementById("projectForm");
+    const projectListDiv = document.getElementById("project-list-admin");
+    const certificateForm = document.getElementById("certificateForm");
+    const certificateListDiv = document.getElementById("certificate-list-admin");
+    const aboutForm = document.getElementById("aboutForm");
+
+    // --- About Me Section ---
+    async function loadAboutDataForAdmin() {
+      const docRef = db.collection("siteContent").doc("aboutMe");
+      const doc = await docRef.get();
+      if (doc.exists) {
+        const data = doc.data();
+        document.getElementById("aboutTitle").value = data.title || "";
+        document.getElementById("aboutDescription").value = data.description || "";
+      }
+    }
+
+    aboutForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const button = aboutForm.querySelector('button');
+      button.textContent = 'Saving...';
+      button.disabled = true;
+      try {
+        await db.collection("siteContent").doc("aboutMe").set({
+          title: document.getElementById("aboutTitle").value,
+          description: document.getElementById("aboutDescription").value
+        });
+        alert("✅ 'About Me' section updated!");
+      } catch (err) { 
+        alert("Error: " + err.message); 
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Save About Me';
+      }
+    });
+
+    // --- Sortable/Drag-and-Drop Logic ---
+    function initializeSortable(elementId, collectionName) {
+      const listEl = document.getElementById(elementId);
+      new Sortable(listEl, {
+        handle: '.drag-handle', animation: 150, ghostClass: 'sortable-ghost',
+        onEnd: async function () {
+          const items = listEl.querySelectorAll('.sortable-item');
+          const batch = db.batch();
+          items.forEach((item, index) => {
+            const docId = item.dataset.id;
+            if (docId) batch.update(db.collection(collectionName).doc(docId), { order: index });
+          });
+          await batch.commit();
+        },
+      });
+    }
+
+    // --- Projects Section ---
+    async function loadProjectsForAdmin() {
+        projectListDiv.innerHTML = '<h3>Loading projects...</h3>';
+        const querySnapshot = await db.collection("projects").orderBy("order", "asc").get();
+        let html = "<h2>Manage Projects</h2><p>Drag ⠿ to reorder.</p>";
+        if (querySnapshot.empty) { html += "<p>No projects yet. Add one above!</p>"; }
+        querySnapshot.forEach(doc => {
+            html += `<div class="sortable-item" data-id="${doc.id}">
+                        <span class="drag-handle">⠿</span>
+                        <span class="item-title">${doc.data().title}</span>
+                        <button class="delete-btn" data-type="project" data-id="${doc.id}">Delete</button>
+                      </div>`;
+        });
+        projectListDiv.innerHTML = html;
+        initializeSortable('project-list-admin', 'projects');
+    }
+
+    projectForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = projectForm.querySelector('button');
+        button.disabled = true;
+        button.textContent = 'Adding...';
+        try {
+            await db.collection("projects").add({
+                title: document.getElementById("projectTitle").value,
+                category: document.getElementById("projectCategory").value,
+                description: document.getElementById("projectDescription").value,
+                imageUrl: document.getElementById("projectImageUrl").value,
+                link: document.getElementById("projectLink").value,
+                createdAt: new Date(),
+                order: Date.now()
+            });
+            alert("✅ Project added!");
+            projectForm.reset();
+            loadProjectsForAdmin();
+        } catch (err) { 
+            alert("Error: " + err.message); 
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Add Project';
+        }
+    });
+
+    // --- Certificates Section ---
+    async function loadCertificatesForAdmin() {
+        certificateListDiv.innerHTML = '<h3>Loading certificates...</h3>';
+        const querySnapshot = await db.collection("certificates").orderBy("order", "asc").get();
+        let html = "<h2>Manage Certificates</h2><p>Drag ⠿ to reorder.</p>";
+        if (querySnapshot.empty) { html += "<p>No certificates yet. Add one above!</p>"; }
+        querySnapshot.forEach(doc => {
+            html += `<div class="sortable-item" data-id="${doc.id}">
+                        <span class="drag-handle">⠿</span>
+                        <span class="item-title">${doc.data().title}</span>
+                        <button class="delete-btn" data-type="certificate" data-id="${doc.id}">Delete</button>
+                      </div>`;
+        });
+        certificateListDiv.innerHTML = html;
+        initializeSortable('certificate-list-admin', 'certificates');
+    }
+
+    certificateForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const button = certificateForm.querySelector('button');
+        button.disabled = true;
+        button.textContent = 'Adding...';
+        try {
+            await db.collection("certificates").add({
+                title: document.getElementById("certTitle").value,
+                category: document.getElementById("certCategory").value,
+                description: document.getElementById("certDescription").value,
+                imageUrl: document.getElementById("certImageUrl").value,
+                credentialUrl: document.getElementById("certLink").value,
+                createdAt: new Date(),
+                order: Date.now()
+            });
+            alert("✅ Certificate added!");
+            certificateForm.reset();
+            loadCertificatesForAdmin();
+        } catch (err) { 
+            alert("Error: " + err.message); 
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Add Certificate';
+        }
+    });
+
+    // --- Delete Logic ---
+    adminContent.addEventListener("click", async (e) => {
+        if (e.target.classList.contains("delete-btn")) {
+            const docId = e.target.dataset.id;
+            const type = e.target.dataset.type;
+            if (confirm(`Are you sure you want to delete this ${type}?`)) {
+                try {
+                    await db.collection(`${type}s`).doc(docId).delete();
+                    alert(`🗑️ ${type.charAt(0).toUpperCase() + type.slice(1)} deleted!`);
+                    if (type === 'project') loadProjectsForAdmin();
+                    if (type === 'certificate') loadCertificatesForAdmin();
+                } catch (err) { alert(`Error deleting ${type}: ` + err.message); }
+            }
+        }
+    });
+
+    // --- Auth Logic ---
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+            await auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+            await auth.signInWithEmailAndPassword(loginEmail.value, loginPassword.value);
+        } catch (err) { alert("Login failed: " + err.message); }
+    });
+    logoutBtn.addEventListener("click", () => auth.signOut());
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            loginForm.style.display = "none";
+            adminContent.style.display = "block";
+            loadAboutDataForAdmin();
+            loadProjectsForAdmin();
+            loadCertificatesForAdmin();
+        } else {
+            loginForm.style.display = "block";
+            adminContent.style.display = "none";
+        }
+    });
+  </script>
+</body>
+</html>
